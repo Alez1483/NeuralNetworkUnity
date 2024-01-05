@@ -72,17 +72,17 @@ public class Layer
         return output;
     }
 
-    public void UpdateOutputLayerWeightedInputDerivatives(LayerDataContainer outputLayerData, double[] weightedInputDerivatives, double[] expectedOutput, ICost cost)
+    public void UpdateOutputLayerWeightedInputDerivatives(LayerDataContainer outputLayerData, double[] expectedOutput, ICost cost)
     {
         for(int outIndex = 0; outIndex < nodesOut; outIndex++)
         {
             double activationDeriv = activation.ActivationToDerivative(outputLayerData.activations[outIndex]);
             double costDeriv = cost.CostDerivative(outputLayerData.activations[outIndex], expectedOutput[outIndex]);
-            weightedInputDerivatives[outIndex] = activationDeriv * costDeriv;
+            outputLayerData.weightedInputDerivatives[outIndex] = activationDeriv * costDeriv;
         }
     }
 
-    public void UpdateHiddenLayerWeightedInputDerivatives(LayerDataContainer layerData, double[] weightedInputDerivatives, Layer prevLayer, double[] prevLayerWInputDerivatives)
+    public void UpdateHiddenLayerWeightedInputDerivatives(LayerDataContainer layerData, Layer prevLayer, double[] prevLayerWInputDerivatives)
     {
         for(int outIndex = 0; outIndex < nodesOut; outIndex++)
         {
@@ -93,7 +93,7 @@ public class Layer
             {
                 newWInputDerivative += prevLayer.GetWeight(outIndex, prevOutIndex) * prevLayerWInputDerivatives[prevOutIndex];
             }
-            weightedInputDerivatives[outIndex] = newWInputDerivative * activationDeriv;
+            layerData.weightedInputDerivatives[outIndex] = newWInputDerivative * activationDeriv;
         }
     }
 
@@ -113,13 +113,13 @@ public class Layer
     }
 
     //layerData must include up to date weight derivatives
-    public void UpdateLayerGradients(LayerDataContainer layerData, double[] weightedInputDerivatives)
+    public void UpdateLayerGradients(LayerDataContainer layerData)
     {
         lock(weightGradient)
         {
             for (int outIndex = 0, wIndex = 0; outIndex < nodesOut; outIndex++)
             {
-                double weightedInputDeriv = weightedInputDerivatives[outIndex];
+                double weightedInputDeriv = layerData.weightedInputDerivatives[outIndex];
 
                 for (int inIndex = 0; inIndex < nodesIn; inIndex++, wIndex++)
                 {

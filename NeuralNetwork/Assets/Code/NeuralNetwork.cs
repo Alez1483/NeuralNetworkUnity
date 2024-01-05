@@ -20,16 +20,16 @@ public class NeuralNetwork
     }
 
     //can wrap around to the begin of the array if end is reached
-    public void LearnBatch(DataPoint[] dataPoints, int startIndex, int batchSize, double learnRate, NetworkDataContainer networkData, WeightedInputDerivativeContainer[] wIDContainers, ICost cost)
+    public void LearnBatch(DataPoint[] dataPoints, int startIndex, int batchSize, double learnRate, NetworkDataContainer[] networkData, ICost cost)
     {
         System.Threading.Tasks.Parallel.For(0, batchSize, i =>
         {
-            UpdateAllGradients(dataPoints[(startIndex + i) % dataPoints.Length], wIDContainers[i], networkData, cost);
+            UpdateAllGradients(dataPoints[(startIndex + i) % dataPoints.Length], networkData[i], cost);
         });
 
         for(int layerIndex = 0; layerIndex < layers.Length; layerIndex++)
         {
-            layers[layerIndex].ApplyBiasWeightGradients(learnRate / dataPoints.Length);
+            layers[layerIndex].ApplyBiasWeightGradients(learnRate / batchSize);
         }
     }
 
@@ -50,7 +50,7 @@ public class NeuralNetwork
         return MaxIndex(output);
     }
 
-    public void UpdateAllGradients(DataPoint dataPoint, WeightedInputDerivativeContainer wIDContainer, NetworkDataContainer networkData, ICost cost)
+    public void UpdateAllGradients(DataPoint dataPoint, NetworkDataContainer networkData, ICost cost)
     {
         //forward pass
 
@@ -67,20 +67,17 @@ public class NeuralNetwork
         Layer layer = layers[layerIndex];
         LayerDataContainer layerData = networkData.GetLayerData(layerIndex);
 
-        double[] wIDs = wIDContainer.weightedInputDerivatives[layerIndex];
-
-        layer.UpdateOutputLayerWeightedInputDerivatives(layerData, wIDs, dataPoint.expectedOutput, cost);
-        layer.UpdateLayerGradients(layerData, wIDs);
+        layer.UpdateOutputLayerWeightedInputDerivatives(layerData, dataPoint.expectedOutput, cost);
+        layer.UpdateLayerGradients(layerData);
         
         for(layerIndex--; layerIndex >= 0; layerIndex--)
         {
-            wIDs = wIDContainer.weightedInputDerivatives[layerIndex];
 
             layer = layers[layerIndex];
             layerData = networkData.GetLayerData(layerIndex);
 
-            layer.UpdateHiddenLayerWeightedInputDerivatives(layerData, wIDs, layers[layerIndex + 1], wIDContainer.weightedInputDerivatives[layerIndex + 1]);
-            layer.UpdateLayerGradients(layerData, wIDs);
+            layer.UpdateHiddenLayerWeightedInputDerivatives(layerData, layers[layerIndex + 1], networkData.GetLayerData(layerIndex + 1).weightedInputDerivatives);
+            layer.UpdateLayerGradients(layerData);
         }
     }
 

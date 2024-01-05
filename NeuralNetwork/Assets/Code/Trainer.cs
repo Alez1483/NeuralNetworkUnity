@@ -5,8 +5,7 @@ public class Trainer : MonoBehaviour
 {
     NeuralNetwork network;
 
-    NetworkDataContainer networkTrainData;
-    WeightedInputDerivativeContainer[] weightedInputDerivatives;
+    NetworkDataContainer[] networkTrainData;
 
     DataPoint[] allData;
 
@@ -46,13 +45,11 @@ public class Trainer : MonoBehaviour
         //initialize
         cost = new MeanSquaredError();
         network = new NeuralNetwork(784, 64, 10);
-        networkTrainData = new NetworkDataContainer(network);
-        weightedInputDerivatives = new WeightedInputDerivativeContainer[batchSize];
-        for(int i = 0; i < weightedInputDerivatives.Length; i++)
+        networkTrainData = new NetworkDataContainer[batchSize];
+        for(int i = 0; i <  networkTrainData.Length; i++)
         {
-            weightedInputDerivatives[i] = new WeightedInputDerivativeContainer(network);
+            networkTrainData[i] = new NetworkDataContainer(network);
         }
-
         allData = new DataPoint[70000];
         
         //load data
@@ -83,7 +80,7 @@ public class Trainer : MonoBehaviour
         {
             epochAtm += (batchSize / (double)trainDataCount);
             batchStart = (batchStart + batchSize) % trainData.Length;
-            network.LearnBatch(trainData, batchStart, batchSize, learnRate, networkTrainData, weightedInputDerivatives, cost);
+            network.LearnBatch(trainData, batchStart, batchSize, learnRate, networkTrainData, cost);
         }
 
         timer.Stop();
