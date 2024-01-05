@@ -6,6 +6,7 @@ public class Trainer : MonoBehaviour
     NeuralNetwork network;
 
     NetworkDataContainer networkTrainData;
+    WeightedInputDerivativeContainer[] weightedInputDerivatives;
 
     DataPoint[] allData;
 
@@ -16,6 +17,7 @@ public class Trainer : MonoBehaviour
     [SerializeField] private int batchSize;
     private int batchStart;
 
+
     int trainDataCount;
     DataPoint[] trainData;
     int testDataCount;
@@ -24,32 +26,52 @@ public class Trainer : MonoBehaviour
     double epochAtm = 0;
     System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
 
+    GraphDrawer graphDrawer;
+
+    [Header("Graph Drawer")]
+    [SerializeField] private int testSize = 100;
     [SerializeField] Transform graphTransform;
+    [SerializeField] bool testAgainstTrainData;
+    [SerializeField] Transform trainGraphTransform;
+    [SerializeField] Transform cameraTransform;
+    [SerializeField] GameObject numberPrefab;
+    [SerializeField] Camera mainCamera;
+    [SerializeField] float graphMomentumReductionRate;
 
     [SerializeField] double graphUpdateRate;
     double lastUpdate;
 
     void Start()
     {
+        //initialize
         cost = new MeanSquaredError();
         network = new NeuralNetwork(784, 64, 10);
         networkTrainData = new NetworkDataContainer(network);
-        
+        weightedInputDerivatives = new WeightedInputDerivativeContainer[batchSize];
+        for(int i = 0; i < weightedInputDerivatives.Length; i++)
+        {
+            weightedInputDerivatives[i] = new WeightedInputDerivativeContainer(network);
+        }
+
         allData = new DataPoint[70000];
-
+        
+        //load data
         LoadData();
-
+        
+        //split data
         (trainData, testData) =  DataSetHelper.SplitData(allData, dataSplit);
         trainDataCount = trainData.Length;
         testDataCount = testData.Length;
 
-        networkTrainData = new NetworkDataContainer(network);
+        graphDrawer = new GraphDrawer(testData, trainData, network, graphTransform, trainGraphTransform, cameraTransform, numberPrefab, mainCamera, graphMomentumReductionRate, testAgainstTrainData);
 
         batchStart = 0;
 
-        double[] input = trainData[0].pixelData;
-
         graphTransform.GetComponent<TrailRenderer>().emitting = true;
+        if (testAgainstTrainData)
+        {
+            trainGraphTransform.GetComponent<TrailRenderer>().emitting = true;
+        }
         lastUpdate = Time.timeAsDouble;
     }
 
@@ -59,9 +81,9 @@ public class Trainer : MonoBehaviour
 
         while(timer.ElapsedMilliseconds < 16)
         {
-            epochAtm += (batchSize / (double)trainData.Length);
+            epochAtm += (batchSize / (double)trainDataCount);
             batchStart = (batchStart + batchSize) % trainData.Length;
-            network.LearnBatch(trainData, batchStart, batchSize, learnRate, networkTrainData, cost);
+            network.LearnBatch(trainData, batchStart, batchSize, learnRate, networkTrainData, weightedInputDerivatives, cost);
         }
 
         timer.Stop();
@@ -69,25 +91,10 @@ public class Trainer : MonoBehaviour
         if (Time.timeAsDouble - lastUpdate > graphUpdateRate)
         {
             lastUpdate += graphUpdateRate;
-            DebugCost();
+            graphDrawer.RunTest(testSize, epochAtm, true);
         }
-    }
 
-    void DebugCost()
-    {
-        double cos = 0;
-        int right = 0;
-        for (int i = 0; i < testData.Length; i++)
-        {
-            double[] outp = network.Evaluate(testData[i].pixelData);
-            if (network.MaxIndex(outp) == testData[i].label)
-            {
-                right++;
-            }
-            cos += cost.Cost(outp, testData[i].expectedOutput);
-        }
-        graphTransform.localPosition = new Vector2((float)epochAtm, right / (float)testData.Length);
-        //print("Cost atm is: " + (cos / testData.Length) + " and correctness: " + (right / (double)testData.Length));
+        graphDrawer.Update(epochAtm);
     }
 
     void LoadData()
