@@ -3,11 +3,13 @@ using System.IO;
 
 public class Trainer : MonoBehaviour
 {
-    NeuralNetwork network;
+    public static Trainer Instance;
+
+    [HideInInspector] public NeuralNetwork network;
 
     NetworkDataContainer[] networkTrainData;
 
-    DataPoint[] allData;
+    [HideInInspector] public DataPoint[] allData;
 
     ICost cost;
 
@@ -18,9 +20,9 @@ public class Trainer : MonoBehaviour
 
 
     int trainDataCount;
-    DataPoint[] trainData;
+    [HideInInspector] public DataPoint[] trainData;
     int testDataCount;
-    DataPoint[] testData;
+    [HideInInspector] public DataPoint[] testData;
 
     double epochAtm = 0;
     System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
@@ -40,11 +42,19 @@ public class Trainer : MonoBehaviour
     [SerializeField] double graphUpdateRate;
     double lastUpdate;
 
-    void Start()
+    void OnEnable()
     {
+        lastUpdate = Time.timeAsDouble;
+    }
+
+    void Awake()
+    {
+        Instance = this;
         //initialize
-        cost = new MeanSquaredError();
-        network = new NeuralNetwork(784, 64, 10);
+        var hiddenAct = new ReLu();
+        cost = new CrossEntropy();
+        var outputAct = new Softmax();
+        network = new NeuralNetwork(hiddenAct, outputAct, 784, 64, 32, 10);
         networkTrainData = new NetworkDataContainer[batchSize];
         for(int i = 0; i <  networkTrainData.Length; i++)
         {
@@ -69,7 +79,6 @@ public class Trainer : MonoBehaviour
         {
             trainGraphTransform.GetComponent<TrailRenderer>().emitting = true;
         }
-        lastUpdate = Time.timeAsDouble;
     }
 
     void Update()

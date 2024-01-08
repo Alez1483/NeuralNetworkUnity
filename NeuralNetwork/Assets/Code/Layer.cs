@@ -43,8 +43,11 @@ public class Layer
                 weightedInput += input[inIndex] * weights[wIndex];
             }
 
-            output[outIndex] = activation.Activate(weightedInput);
+            output[outIndex] = weightedInput;
+            //output[outIndex] = activation.Activate(weightedInput);
         }
+
+        activation.ActivateLayer(output);
 
         return output;
     }
@@ -64,19 +67,34 @@ public class Layer
             }
 
             layerData.weightedInputs[outIndex] = weightedInput;
-            double act = activation.Activate(weightedInput);
-            layerData.activations[outIndex] = act;
-            output[outIndex] = act;
+            output[outIndex] = weightedInput;
+
+            //double act = activation.Activate(weightedInput);
+            //layerData.activations[outIndex] = act;
+            //output[outIndex] = act;                                                                                                                   
         }
+
+        activation.ActivateLayer(output);
+        output.CopyTo(layerData.activations, 0);
 
         return output;
     }
 
     public void UpdateOutputLayerWeightedInputDerivatives(LayerDataContainer outputLayerData, double[] expectedOutput, ICost cost)
     {
+        //works only with one-hot encoding
+        if (activation is Softmax && cost is CrossEntropy)
+        {
+            for (int outIndex = 0; outIndex < nodesOut; outIndex++)
+            {
+                outputLayerData.weightedInputDerivatives[outIndex] =  outputLayerData.activations[outIndex] - expectedOutput[outIndex];
+            }
+            return;
+        }
+
         for(int outIndex = 0; outIndex < nodesOut; outIndex++)
         {
-            double activationDeriv = activation.ActivationToDerivative(outputLayerData.activations[outIndex]);
+            double activationDeriv = activation.Derivate(outputLayerData.weightedInputs[outIndex]);
             double costDeriv = cost.CostDerivative(outputLayerData.activations[outIndex], expectedOutput[outIndex]);
             outputLayerData.weightedInputDerivatives[outIndex] = activationDeriv * costDeriv;
         }
@@ -86,7 +104,7 @@ public class Layer
     {
         for(int outIndex = 0; outIndex < nodesOut; outIndex++)
         {
-            double activationDeriv = activation.ActivationToDerivative(layerData.activations[outIndex]);
+            double activationDeriv = activation.Derivate(layerData.weightedInputs[outIndex]);
             double newWInputDerivative = 0;
 
             for (int prevOutIndex = 0; prevOutIndex < prevLayer.nodesOut; prevOutIndex++)
@@ -131,15 +149,14 @@ public class Layer
         }
     }
 
-    //normalized xavier
+    //He et al. initialization
     public void RandomizeWeights()
     {
-        double upper = Sqrt(6.0) / Sqrt(nodesIn + nodesOut);
-        double lower = -upper;
+        double stddev = Sqrt(2.0 / nodesIn);
 
         for(int i = 0; i < weights.Length; i++)
         {
-            weights[i] = MyRandom.Range(lower, upper);
+            weights[i] = MyRandom.RandomFromNormalDistribution(0.0, stddev);
         }
     }
 }

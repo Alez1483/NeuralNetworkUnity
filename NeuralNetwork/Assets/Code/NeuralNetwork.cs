@@ -5,10 +5,10 @@ public class NeuralNetwork
     IActivation hiddenActivation;
     IActivation outputActivation;
 
-    public NeuralNetwork(params int[] layerSizes)
+    public NeuralNetwork(IActivation hiddenAct, IActivation outputAct, params int[] layerSizes)
     {
-        hiddenActivation = new ReLu();
-        outputActivation = new Sigmoid();
+        hiddenActivation = hiddenAct;
+        outputActivation = outputAct;
         inputCount = layerSizes[0];
         layers = new Layer[layerSizes.Length - 1];
 
@@ -32,7 +32,6 @@ public class NeuralNetwork
             layers[layerIndex].ApplyBiasWeightGradients(learnRate / batchSize);
         }
     }
-
 
     public double[] Evaluate(double[] input)
     {

@@ -198,7 +198,6 @@ public class GraphDrawer
         //cycle backwards (scrolled backwards)
         if (lastNumber.xPosition - 1 + halfTextWidth > camLeftPos && lastNumber.xPosition != 0)
         {
-            Debug.Log("juu");
             int xPosition = Mathf.Max(Mathf.CeilToInt(camLeftPos - halfTextWidth), 0);
             for (int i = 0; i < numberTexts.Count; i++)
             {
