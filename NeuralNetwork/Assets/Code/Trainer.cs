@@ -15,6 +15,7 @@ public class Trainer : MonoBehaviour
 
     [Range(0.0f, 1.0f)] public double dataSplit = 0.85;
     [SerializeField] private double learnRate = 1;
+    [SerializeField] private double momentum;
     [SerializeField] private int batchSize;
     private int batchStart;
 
@@ -89,7 +90,7 @@ public class Trainer : MonoBehaviour
         {
             epochAtm += (batchSize / (double)trainDataCount);
             batchStart = (batchStart + batchSize) % trainData.Length;
-            network.LearnBatch(trainData, batchStart, batchSize, learnRate, networkTrainData, cost);
+            network.LearnBatch(trainData, batchStart, batchSize, learnRate, momentum, networkTrainData, cost);
         }
 
         timer.Stop();

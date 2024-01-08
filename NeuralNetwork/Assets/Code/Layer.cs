@@ -10,6 +10,9 @@ public class Layer
     public double[] weightGradient;
     public double[] biasGradient;
 
+    public double[] weightVelocity;
+    public double[] biasVelocity;
+
     public IActivation activation;
 
     public Layer(int nodesIn, int nodesOut, IActivation activation)
@@ -19,8 +22,10 @@ public class Layer
 
         weights = new double[nodesIn * nodesOut];
         weightGradient = new double[weights.Length];
+        weightVelocity = new double[weights.Length];
         biases = new double[nodesOut];
         biasGradient = new double[biases.Length];
+        biasVelocity = new double[biases.Length];
 
         this.activation = activation;
 
@@ -115,17 +120,19 @@ public class Layer
         }
     }
 
-    public void ApplyBiasWeightGradients(double learnRate)
+    public void ApplyBiasWeightGradients(double learnRate, double momentum)
     {
         for(int i = 0; i < weightGradient.Length; i++)
         {
-            weights[i] -= weightGradient[i] * learnRate;
+            weightVelocity[i] = weightVelocity[i] * momentum - weightGradient[i] * learnRate;
+            weights[i] += weightVelocity[i];
             weightGradient[i] = 0;
         }
 
         for(int i = 0; i < biasGradient.Length; i++)
         {
-            biases[i] -= biasGradient[i] * learnRate;
+            biasVelocity[i] = biasVelocity[i] * momentum - biasGradient[i] * learnRate;
+            biases[i] += biasVelocity[i];
             biasGradient[i] = 0;
         }
     }

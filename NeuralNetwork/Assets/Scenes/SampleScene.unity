@@ -688,9 +688,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dataSplit: 0.8999999761581421
-  learnRate: 0.025
+  learnRate: 0.01
+  momentum: 0.99
   batchSize: 100
-  testSize: 200
+  testSize: 1000
   graphTransform: {fileID: 689130695}
   testAgainstTrainData: 0
   trainGraphTransform: {fileID: 355955585}

@@ -20,7 +20,7 @@ public class NeuralNetwork
     }
 
     //can wrap around to the begin of the array if end is reached
-    public void LearnBatch(DataPoint[] dataPoints, int startIndex, int batchSize, double learnRate, NetworkDataContainer[] networkData, ICost cost)
+    public void LearnBatch(DataPoint[] dataPoints, int startIndex, int batchSize, double learnRate, double momentum, NetworkDataContainer[] networkData, ICost cost)
     {
         System.Threading.Tasks.Parallel.For(0, batchSize, i =>
         {
@@ -29,7 +29,7 @@ public class NeuralNetwork
 
         for(int layerIndex = 0; layerIndex < layers.Length; layerIndex++)
         {
-            layers[layerIndex].ApplyBiasWeightGradients(learnRate / batchSize);
+            layers[layerIndex].ApplyBiasWeightGradients(learnRate / batchSize, momentum);
         }
     }
 
