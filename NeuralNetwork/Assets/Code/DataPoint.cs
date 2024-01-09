@@ -31,12 +31,7 @@ public class DataPoint
         var texture = new Texture2D(imageWidth, imageHeight, TextureFormat.RGB24, false);
         texture.filterMode = FilterMode.Point;
 
-        for(int i = 0; i < pixelCount; i++)
-        {
-            texture.SetPixel(i % imageWidth, i / imageWidth, Color.white * (float)pixelData[i]);
-        }
-
-        texture.Apply(false);
+        ToTexture(texture);
 
         return texture;
     }

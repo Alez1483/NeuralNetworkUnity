@@ -14,6 +14,7 @@ public class Trainer : MonoBehaviour
     ICost cost;
 
     [Range(0.0f, 1.0f)] public double dataSplit = 0.85;
+    [SerializeField] private int[] networkSize;
     [SerializeField] private double learnRate = 1;
     [SerializeField] private double momentum;
     [SerializeField] private int batchSize;
@@ -55,7 +56,7 @@ public class Trainer : MonoBehaviour
         var hiddenAct = new ReLu();
         cost = new CrossEntropy();
         var outputAct = new Softmax();
-        network = new NeuralNetwork(hiddenAct, outputAct, 784, 64, 32, 10);
+        network = new NeuralNetwork(hiddenAct, outputAct, networkSize);
         networkTrainData = new NetworkDataContainer[batchSize];
         for(int i = 0; i <  networkTrainData.Length; i++)
         {

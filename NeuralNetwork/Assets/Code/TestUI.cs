@@ -5,7 +5,9 @@ using UnityEngine.UI;
 
 public class TestUI : MonoBehaviour
 {
-    [SerializeField] GameObject testUI;
+    [SerializeField] GameObject UI;
+    [SerializeField] GameObject[] UIs;
+    int activeUI = 0;
     [SerializeField] GameObject stopLearningButton;
     [SerializeField] TextMeshProUGUI[] percentTexts;
 
@@ -17,29 +19,42 @@ public class TestUI : MonoBehaviour
     int index;
     NeuralNetwork network;
 
+    [SerializeField] RawImage weightImage;
+    [SerializeField] Gradient weightGradient;
+    Texture2D weightTeture;
+    [SerializeField] double weightDebugScaleMultiplier;
+    int weightIndex;
+
     void Start()
     {
+        UI.SetActive(false);
+
         neutralColor = percentTexts[0].color;
         network = Trainer.Instance.network;
         testImages = Trainer.Instance.testData;
         index = Random.Range(0, testImages.Length);
         digitTexture = testImages[index].ToTexture();
         digitImage.texture = digitTexture;
+
+        weightTeture = network.layers[0].WeightsToTexture(0, testImages[0].imageWidth, testImages[0].imageHeight, weightGradient, weightDebugScaleMultiplier);
+        weightIndex = -1;
+        weightImage.texture = weightTeture;
     }
 
     public void StopLearning()
     {
         Trainer.Instance.enabled = false;
-        testUI.SetActive(true);
+        UI.SetActive(true);
         stopLearningButton.SetActive(false);
 
+        NextNeuron();
         NextDigit();
     }
 
     public void ContinueLearning()
     {
         Trainer.Instance.enabled = true;
-        testUI.SetActive(false);
+        UI.SetActive(false);
         stopLearningButton.SetActive(true);
     }
 
@@ -78,8 +93,38 @@ public class TestUI : MonoBehaviour
         }
     }
 
+    public void NextUI()
+    {
+        UIs[activeUI].SetActive(false);
+        activeUI = (activeUI + 1) % UIs.Length;
+        UIs[activeUI].SetActive(true);
+    }
+    public void PreviousUI()
+    {
+        UIs[activeUI].SetActive(false);
+        activeUI = (activeUI + UIs.Length - 1) % UIs.Length;
+        UIs[activeUI].SetActive(true);
+    }
+
+    public void NextNeuron()
+    {
+        Layer firstLayer = network.layers[0];
+        weightIndex = (weightIndex + 1) % firstLayer.nodesOut;
+        firstLayer.WeightsToTexture(weightTeture, weightIndex, testImages[0].imageWidth, testImages[0].imageHeight, weightGradient, weightDebugScaleMultiplier);
+    }
+    public void PreviousNeuron()
+    {
+        Layer firstLayer = network.layers[0];
+        weightIndex = (weightIndex + firstLayer.nodesOut - 1) % firstLayer.nodesOut;
+        firstLayer.WeightsToTexture(weightTeture, weightIndex, testImages[0].imageWidth, testImages[0].imageHeight, weightGradient, weightDebugScaleMultiplier);
+    }
+
     void OnDisable()
     {
         Destroy(digitTexture);
+        if (weightTeture != null)
+        {
+            Destroy(weightTeture);
+        }
     }
 }

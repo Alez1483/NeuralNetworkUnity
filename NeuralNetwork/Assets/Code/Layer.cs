@@ -1,3 +1,5 @@
+using System.Drawing;
+using UnityEngine;
 using static System.Math;
 
 public class Layer
@@ -165,5 +167,31 @@ public class Layer
         {
             weights[i] = MyRandom.RandomFromNormalDistribution(0.0, stddev);
         }
+    }
+
+    public Texture2D WeightsToTexture(int outIndex, int width, int height, Gradient color, double mult)
+    {
+        var texture = new Texture2D(width, height, TextureFormat.RGB24, false);
+        texture.filterMode = FilterMode.Point;
+
+        WeightsToTexture(texture, outIndex, width, height, color, mult);
+
+        return texture;
+    }
+    public void WeightsToTexture(Texture2D texture, int outIndex, int width, int height, Gradient color, double mult)
+    {
+        //assumes square texture atm
+        if (texture.width != width || texture.height != height)
+        {
+            Debug.LogError("Given texture has wrong dimensions");
+            return;
+        }
+
+        for (int i = 0, j = outIndex * nodesIn; i < nodesIn; i++, j++)
+        {
+            texture.SetPixel(i % width, i / width, color.Evaluate((float)(weights[j] * mult + 0.5)));
+        }
+
+        texture.Apply(false);
     }
 }
