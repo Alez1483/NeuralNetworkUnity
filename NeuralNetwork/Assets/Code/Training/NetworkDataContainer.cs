@@ -8,7 +8,7 @@ public class NetworkDataContainer
 
         for(int i = 0; i < layerDataContainers.Length; i++)
         {
-            layerDataContainers[i] = new LayerDataContainer(network.layers[i]);
+            layerDataContainers[i] = new LayerDataContainer(network[i]);
         }
     }
 

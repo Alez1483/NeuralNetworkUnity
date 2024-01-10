@@ -80,6 +80,18 @@ public class NeuralNetwork
         }
     }
 
+    public Layer this[int i]
+    {
+        get 
+        {
+            return layers[i];
+        }
+        set 
+        {
+            layers[i] = value;
+        }
+    }
+
     public int MaxIndex(double[] input)
     {
         double max = double.MinValue;
