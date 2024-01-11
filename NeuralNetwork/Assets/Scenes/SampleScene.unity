@@ -853,12 +853,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdebee547e31ea7498cc4ec6a66aabfd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataSplit: 0.8999999761581421
+  dataSplit: 0.9
   networkSize: 1003000080000000320000000a000000
   learnRate: 0.01
   momentum: 0.9
   batchSize: 100
-  testSize: 200
+  testSize: 5000
   graphTransform: {fileID: 689130695}
   testAgainstTrainData: 0
   trainGraphTransform: {fileID: 355955585}
@@ -866,7 +866,7 @@ MonoBehaviour:
   numberPrefab: {fileID: 8437035409595022904, guid: 6348c589d1a6b1343ba7b43cf8bfa640, type: 3}
   mainCamera: {fileID: 519420031}
   graphMomentumReductionRate: 3
-  graphUpdateRate: 1
+  graphUpdateRate: 4
 --- !u!4 &230672596
 Transform:
   m_ObjectHideFlags: 0

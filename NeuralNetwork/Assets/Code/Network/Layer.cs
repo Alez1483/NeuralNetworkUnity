@@ -51,7 +51,6 @@ public class Layer
             }
 
             output[outIndex] = weightedInput;
-            //output[outIndex] = activation.Activate(weightedInput);
         }
 
         activation.ActivateLayer(output);
@@ -74,11 +73,7 @@ public class Layer
             }
 
             layerData.weightedInputs[outIndex] = weightedInput;
-            output[outIndex] = weightedInput;
-
-            //double act = activation.Activate(weightedInput);
-            //layerData.activations[outIndex] = act;
-            //output[outIndex] = act;                                                                                                                   
+            output[outIndex] = weightedInput;                                                                                                             
         }
 
         activation.ActivateLayer(output);

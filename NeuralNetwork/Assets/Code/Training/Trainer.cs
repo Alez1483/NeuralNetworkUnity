@@ -62,7 +62,7 @@ public class Trainer : MonoBehaviour
         {
             networkTrainData[i] = new NetworkDataContainer(network);
         }
-        allData = new DataPoint[70000];
+        //allData = new DataPoint[70000];
         
         //load data
         LoadData();
@@ -107,38 +107,50 @@ public class Trainer : MonoBehaviour
 
     void LoadData()
     {
-        ImageLoader imageLoader = new ImageLoader();
+        System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+        sw.Start();
 
-        imageLoader.ImagePath = Path.Combine("Assets", "Code", "Data", "TrainImages.idx");
-        imageLoader.LabelPath = Path.Combine("Assets", "Code", "Data", "TrainLabels.idx");
-        imageLoader.InitializeReaders();
+        string trainImagePath = Path.Combine("Assets", "Code", "Data", "TrainImages.idx");
+        string trainLabelPath = Path.Combine("Assets", "Code", "Data", "TrainLabels.idx");
+        string testImagePath = Path.Combine("Assets", "Code", "Data", "TestImages.idx");
+        string testLabelPath = Path.Combine("Assets", "Code", "Data", "TestLabels.idx");
 
-        int trainImageCount = imageLoader.dataPoints;
+        allData = ImageLoader2.LoadImages((trainImagePath, trainLabelPath), (testImagePath, testLabelPath));
 
-        if (trainImageCount > allData.Length)
-        {
-            Debug.LogError("Image array too small");
-            return;
-        }
+        //ImageLoader imageLoader = new ImageLoader();
 
-        for (int i = 0; i < imageLoader.dataPoints; i++)
-        {
-            allData[i] = imageLoader.LoadImage();
-        }
+        //imageLoader.ImagePath = Path.Combine("Assets", "Code", "Data", "TrainImages.idx");
+        //imageLoader.LabelPath = Path.Combine("Assets", "Code", "Data", "TrainLabels.idx");
+        //imageLoader.InitializeReaders();
 
-        imageLoader.ImagePath = Path.Combine("Assets", "Code", "Data", "TestImages.idx");
-        imageLoader.LabelPath = Path.Combine("Assets", "Code", "Data", "TestLabels.idx");
-        imageLoader.InitializeReaders();
+        //int trainImageCount = imageLoader.dataPoints;
 
-        if (trainImageCount + imageLoader.dataPoints > allData.Length)
-        {
-            Debug.LogError("Image array too small");
-            return;
-        }
+        //if (trainImageCount > allData.Length)
+        //{
+        //    Debug.LogError("Image array too small");
+        //    return;
+        //}
 
-        for (int i = 0, j = trainImageCount; i < imageLoader.dataPoints; i++, j++)
-        {
-            allData[j] = imageLoader.LoadImage();
-        }
+        //for (int i = 0; i < imageLoader.dataPoints; i++)
+        //{
+        //    allData[i] = imageLoader.LoadImage();
+        //}
+
+        //imageLoader.ImagePath = Path.Combine("Assets", "Code", "Data", "TestImages.idx");
+        //imageLoader.LabelPath = Path.Combine("Assets", "Code", "Data", "TestLabels.idx");
+        //imageLoader.InitializeReaders();
+
+        //if (trainImageCount + imageLoader.dataPoints > allData.Length)
+        //{
+        //    Debug.LogError("Image array too small");
+        //    return;
+        //}
+
+        //for (int i = 0, j = trainImageCount; i < imageLoader.dataPoints; i++, j++)
+        //{
+        //    allData[j] = imageLoader.LoadImage();
+        //}
+        sw.Stop();
+        print($"optimize heck out of this {sw.Elapsed.TotalMilliseconds} + remember to randomize train data after epochs");
     }
 }
