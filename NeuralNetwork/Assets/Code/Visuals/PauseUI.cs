@@ -10,14 +10,24 @@ public class PauseUI : MonoBehaviour
     [SerializeField] GameObject stopLearningButton;
     int activeUI = 0;
 
+    [SerializeField] Color rightColor, wrongColor, neutralColor;
+    public static Color RightColor;
+    public static Color WrongColor;
+    public static Color NeutralColor;
+
     void Awake()
     {
+        RightColor = rightColor;
+        WrongColor = wrongColor;
+        NeutralColor = neutralColor;
+
         pauseUI.SetActive(false);
     }
 
     public void StopLearning()
     {
         Trainer.Instance.enabled = false;
+        pauseUIWindows[activeUI].SetActive(true);
         pauseUI.SetActive(true);
         stopLearningButton.SetActive(false);
     }

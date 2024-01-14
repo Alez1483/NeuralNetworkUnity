@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 using System.IO;
 
 public class Trainer : MonoBehaviour
@@ -20,7 +21,6 @@ public class Trainer : MonoBehaviour
     [SerializeField] private int batchSize;
     private int batchStart;
 
-
     int trainDataCount;
     [HideInInspector] public DataPoint[] trainData;
     int testDataCount;
@@ -29,17 +29,9 @@ public class Trainer : MonoBehaviour
     double epochAtm = 0;
     System.Diagnostics.Stopwatch timer = new System.Diagnostics.Stopwatch();
 
-    GraphDrawer graphDrawer;
-
     [Header("Graph Drawer")]
     [SerializeField] private int testSize = 100;
-    [SerializeField] Transform graphTransform;
-    [SerializeField] bool testAgainstTrainData;
-    [SerializeField] Transform trainGraphTransform;
-    [SerializeField] Transform cameraTransform;
-    [SerializeField] GameObject numberPrefab;
-    [SerializeField] Camera mainCamera;
-    [SerializeField] float graphMomentumReductionRate;
+    [SerializeField] GraphDrawer graphDrawer;
 
     [SerializeField] double graphUpdateRate;
     double lastUpdate;
@@ -62,7 +54,6 @@ public class Trainer : MonoBehaviour
         {
             networkTrainData[i] = new NetworkDataContainer(network);
         }
-        //allData = new DataPoint[70000];
         
         //load data
         LoadData();
@@ -72,15 +63,9 @@ public class Trainer : MonoBehaviour
         trainDataCount = trainData.Length;
         testDataCount = testData.Length;
 
-        graphDrawer = new GraphDrawer(testData, trainData, network, graphTransform, trainGraphTransform, cameraTransform, numberPrefab, mainCamera, graphMomentumReductionRate, testAgainstTrainData);
+        graphDrawer.Initialize(testData, trainData, network);
 
         batchStart = 0;
-
-        graphTransform.GetComponent<TrailRenderer>().emitting = true;
-        if (testAgainstTrainData)
-        {
-            trainGraphTransform.GetComponent<TrailRenderer>().emitting = true;
-        }
     }
 
     void Update()
@@ -90,7 +75,12 @@ public class Trainer : MonoBehaviour
         while(timer.ElapsedMilliseconds < 16)
         {
             epochAtm += (batchSize / (double)trainDataCount);
-            batchStart = (batchStart + batchSize) % trainData.Length;
+            batchStart += batchSize;
+            if (batchStart >= trainData.Length)
+            {
+                DataSetHelper.SuffleDataSet(trainData);
+                batchStart = 0;
+            }
             network.LearnBatch(trainData, batchStart, batchSize, learnRate, momentum, networkTrainData, cost);
         }
 
@@ -107,50 +97,11 @@ public class Trainer : MonoBehaviour
 
     void LoadData()
     {
-        System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-        sw.Start();
-
         string trainImagePath = Path.Combine("Assets", "Code", "Data", "TrainImages.idx");
         string trainLabelPath = Path.Combine("Assets", "Code", "Data", "TrainLabels.idx");
         string testImagePath = Path.Combine("Assets", "Code", "Data", "TestImages.idx");
         string testLabelPath = Path.Combine("Assets", "Code", "Data", "TestLabels.idx");
 
-        allData = ImageLoader2.LoadImages((trainImagePath, trainLabelPath), (testImagePath, testLabelPath));
-
-        //ImageLoader imageLoader = new ImageLoader();
-
-        //imageLoader.ImagePath = Path.Combine("Assets", "Code", "Data", "TrainImages.idx");
-        //imageLoader.LabelPath = Path.Combine("Assets", "Code", "Data", "TrainLabels.idx");
-        //imageLoader.InitializeReaders();
-
-        //int trainImageCount = imageLoader.dataPoints;
-
-        //if (trainImageCount > allData.Length)
-        //{
-        //    Debug.LogError("Image array too small");
-        //    return;
-        //}
-
-        //for (int i = 0; i < imageLoader.dataPoints; i++)
-        //{
-        //    allData[i] = imageLoader.LoadImage();
-        //}
-
-        //imageLoader.ImagePath = Path.Combine("Assets", "Code", "Data", "TestImages.idx");
-        //imageLoader.LabelPath = Path.Combine("Assets", "Code", "Data", "TestLabels.idx");
-        //imageLoader.InitializeReaders();
-
-        //if (trainImageCount + imageLoader.dataPoints > allData.Length)
-        //{
-        //    Debug.LogError("Image array too small");
-        //    return;
-        //}
-
-        //for (int i = 0, j = trainImageCount; i < imageLoader.dataPoints; i++, j++)
-        //{
-        //    allData[j] = imageLoader.LoadImage();
-        //}
-        sw.Stop();
-        print($"optimize heck out of this {sw.Elapsed.TotalMilliseconds} + remember to randomize train data after epochs");
+        allData = ImageLoader.LoadImages((trainImagePath, trainLabelPath), (testImagePath, testLabelPath));
     }
 }

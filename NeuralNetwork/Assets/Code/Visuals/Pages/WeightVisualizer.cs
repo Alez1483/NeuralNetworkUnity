@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PreviewNeurons : MonoBehaviour
+public class WeightVisualizer : MonoBehaviour
 {
     DataPoint[] testImages;
     NeuralNetwork network;

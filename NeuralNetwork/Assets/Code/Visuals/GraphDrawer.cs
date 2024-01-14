@@ -1,55 +1,66 @@
 using UnityEngine;
 using System.Collections.Generic;
 using TMPro;
-using UnityEngine.UIElements;
+using System.Globalization;
 
 [System.Serializable]
 public class GraphDrawer
 {
     DataPoint[] testData;
     DataPoint[] trainData;
-    int testDataCount;
     int testDataStart = 0;
     int trainDataStart = 0;
     NeuralNetwork network;
+    
+    NumberFormatInfo percentFormat = new NumberFormatInfo { PercentPositivePattern = 1 };
 
-    Transform graphTransform;
-    Transform trainGraphTransform;
-    Transform cameraTransform;
-    GameObject numberPrefab;
-    Camera camera;
+    //serialized into the unity editor of Trainer.cs
+    public bool testAgainstTrainData;
+    public TextMeshPro testPercentText;
+    public TextMeshPro trainPercentText;
+    
+    public TrailRenderer testTrail;
+    public TrailRenderer trainTrail;
+
+    public Transform cameraTransform;
+    public GameObject numberPrefab;
+    public Camera camera;
+
+    public float camMomentumReductionRate;
 
     float camWorldWidth;
-    int screenWidth;
-    int screenHeight;
+    int screenWidth = 0;
+    int screenHeight = 0;
 
     Queue<NumberText> numberTexts = new Queue<NumberText>();
 
-    float camMomentumReductionRate;
     float camPosBorder = 0.0f;
     float camXPos = 0.0f;
     float lastFrameMouseXPos;
     float camXSpeed = 0.0f;
     bool followingGraph = true;
 
-    bool testAgainstTrainData;
-
-    public GraphDrawer(DataPoint[] ted, DataPoint[] trd, NeuralNetwork n, Transform gt, Transform g2t, Transform ct, GameObject np, Camera c, float cMRR, bool tATD)
+    public void Initialize(DataPoint[] testData, DataPoint[] trainData, NeuralNetwork network)
     {
-        testData = ted;
-        testDataCount = ted.Length;
-        trainData = trd;
-        network = n;
-        graphTransform = gt;
-        trainGraphTransform = g2t;
-        cameraTransform = ct;
-        numberPrefab = np;
-        camera = c;
-        camMomentumReductionRate = cMRR;
-        testAgainstTrainData = tATD;
+        this.testData = testData;
+        this.trainData = trainData;
+        this.network = network;
 
-        screenWidth = 0;
-        screenHeight = 0;
+        testPercentText.color = testTrail.colorGradient.Evaluate(0.5f);
+
+        testTrail.emitting = true;
+        testPercentText.text = trainPercentText.text = 0.ToString("P1", percentFormat);
+        if (testAgainstTrainData)
+        {
+            trainPercentText.gameObject.SetActive(true);
+            trainPercentText.color = trainTrail.colorGradient.Evaluate(0.5f);
+            trainTrail.emitting = true;
+        }
+        else
+        {
+            trainPercentText.gameObject.SetActive(false);
+            trainTrail.emitting = false;
+        }
     }
 
     public void RunTest(int testSamples, double epochAtm, bool randomize)
@@ -58,11 +69,11 @@ public class GraphDrawer
         {
             if (randomize)
             {
-                testDataStart = Random.Range(0, testDataCount);
+                testDataStart = Random.Range(0, testData.Length);
             }
             else
             {
-                testDataStart = (testDataStart + testSamples) % testDataCount;
+                testDataStart = (testDataStart + testSamples) % testData.Length;
             }
             
         }
@@ -70,18 +81,19 @@ public class GraphDrawer
         {
             if (randomize)
             {
-                testDataStart = Random.Range(0, testDataCount);
+                testDataStart = Random.Range(0, testData.Length);
                 trainDataStart = Random.Range(0, testData.Length);
             }
             else
             {
-                testDataStart = (testDataStart + testSamples) % testDataCount;
+                testDataStart = (testDataStart + testSamples) % testData.Length;
                 trainDataStart = (trainDataStart + testSamples) % trainData.Length;
             }
-            trainGraphTransform.localPosition = new Vector3((float)epochAtm, EvaluatePerformance(testSamples, trainDataStart, trainData));
+            trainTrail.transform.localPosition = new Vector3((float)epochAtm, EvaluatePerformance(testSamples, trainDataStart, trainData));
         }
-        graphTransform.localPosition = new Vector3((float)epochAtm, EvaluatePerformance(testSamples, testDataStart, testData));
+        testTrail.transform.localPosition = new Vector3((float)epochAtm, EvaluatePerformance(testSamples, testDataStart, testData));
     }
+
     readonly object threadLock = new object();
     float EvaluatePerformance(int testSamples, int startIndex, DataPoint[] data)
     {
@@ -113,8 +125,70 @@ public class GraphDrawer
             camWorldWidth = (camera.orthographicSize * 2f) * ((float)screenWidth / screenHeight);
         }
 
-        //scrolling mechanism
+        UpdateCameraScroll(epochAtm);
 
+        UpdatetPercentageTests();
+
+        //changes the amount of numbers when needed
+
+        if (screenSizeChanged)
+        {
+            ScreenSizeChanged();
+        }
+
+        RecycleNumberTexts();
+    }
+
+    void UpdatetPercentageTests()
+    {
+        int trailPointCount = testTrail.positionCount;
+
+        if (trailPointCount == 0)
+        {
+            return;
+        }
+
+        //binary searching the left and rights points of the trail data for interpolation
+        //could be optimized a lot by predicting the new middle point
+
+        int left = 0;
+        int right = trailPointCount - 1;
+
+        int middle = (left + right) / 2;
+
+        while (left != middle)
+        {
+            if (camXPos > testTrail.GetPosition(middle).x)
+            {
+                left = middle;
+            }
+            else
+            {
+                right = middle;
+            }
+            middle = (left + right) / 2;
+        }
+
+        Vector2 leftPos = testTrail.GetPosition(left);
+        Vector2 rightPos = testTrail.GetPosition(right);
+
+        //interpolation and clamping (inbuilt on Lerp)
+        float percentage = Mathf.Lerp(leftPos.y, rightPos.y, Mathf.InverseLerp(leftPos.x, rightPos.x, camXPos));
+        testPercentText.text = percentage.ToString("P1", percentFormat);
+
+        if (testAgainstTrainData)
+        {
+            Vector2 trainLeftPos = trainTrail.GetPosition(left);
+            Vector2 trainRightPos = trainTrail.GetPosition(right);
+
+            float trainPercentage = Mathf.Lerp(trainLeftPos.y, trainRightPos.y, Mathf.InverseLerp(trainLeftPos.x, trainRightPos.x, camXPos));
+            trainPercentText.text = trainPercentage.ToString("P1", percentFormat);
+        }
+    }
+
+    //scrolling mechanism
+    void UpdateCameraScroll(double epochAtm)
+    {
         camPosBorder = (float)epochAtm;
 
         bool mouseDown = Input.GetKeyDown(KeyCode.Mouse0);
@@ -169,16 +243,10 @@ public class GraphDrawer
         }
 
         cameraTransform.position = new Vector3(camXPos, 0.5f, 0f);
+    }
 
-        //chamges the amount of numbers when needed
-
-        if (screenSizeChanged)
-        {
-            ScreenSizeChanged();
-        }
-
-        //number recycling
-
+    void RecycleNumberTexts()
+    {
         NumberText lastNumber = numberTexts.Peek();
         float camHalfWidth = camWorldWidth / 2f;
         float camLeftPos = cameraTransform.position.x - camHalfWidth;
@@ -215,7 +283,6 @@ public class GraphDrawer
         //makes sure there's correct amount of numbers available to fit in the screen
 
         float textWidth = ((RectTransform)numberPrefab.transform).sizeDelta.x;
-        //Debug.Log(textWidth);
         int maxNumbersInScreen = Mathf.CeilToInt(camWorldWidth + textWidth);
 
         if (numberTexts.Count != maxNumbersInScreen)

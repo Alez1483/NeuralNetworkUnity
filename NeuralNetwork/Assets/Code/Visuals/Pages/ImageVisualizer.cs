@@ -1,15 +1,18 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Globalization;
 
-public class PreviewImage : MonoBehaviour
+public class ImageVisualizer : MonoBehaviour
 {
     NeuralNetwork network;
     DataPoint[] testImages;
 
     [SerializeField] TextMeshProUGUI[] percentTexts;
     [SerializeField] RawImage digitImage;
-    [SerializeField] Color rightColor, wrongColor;
+    Color rightColor, wrongColor;
+
+    NumberFormatInfo percentFormat = new NumberFormatInfo { PercentPositivePattern = 1 };
 
     Color neutralColor;
     Texture2D digitTexture;
@@ -19,7 +22,9 @@ public class PreviewImage : MonoBehaviour
     {
         if (digitTexture == null)
         {
-            neutralColor = percentTexts[0].color;
+            rightColor = PauseUI.RightColor;
+            wrongColor = PauseUI.WrongColor;
+            neutralColor = PauseUI.NeutralColor;
             network = Trainer.Instance.network;
             testImages = Trainer.Instance.testData;
             index = Random.Range(0, testImages.Length);
@@ -45,7 +50,7 @@ public class PreviewImage : MonoBehaviour
         for (int i = 0; i < output.Length; i++)
         {
             percentTexts[i].color = i == dataPoint.label ? rightColor : i == prediction ? wrongColor : neutralColor;
-            percentTexts[i].text = (output[i] * 100.0).ToString("0.0") + "%";
+            percentTexts[i].text = output[i].ToString("P1", percentFormat);
         }
     }
     public void NextWrong()
@@ -63,7 +68,7 @@ public class PreviewImage : MonoBehaviour
                 for (int j = 0; j < output.Length; j++)
                 {
                     percentTexts[j].color = j == dataPoint.label ? rightColor : j == prediction ? wrongColor : neutralColor;
-                    percentTexts[j].text = (output[j] * 100.0).ToString("0.0") + "%";
+                    percentTexts[j].text = output[j].ToString("P1", percentFormat);
                 }
                 return;
             }
