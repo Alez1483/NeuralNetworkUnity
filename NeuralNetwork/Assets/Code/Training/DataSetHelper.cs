@@ -34,4 +34,21 @@ public static class DataSetHelper
             data[i] = temp;
         }
     }
+
+    public static void SuffleTwoSetsAtSync(DataPoint[] data1, DataPoint[] data2)
+    {
+        for (int i = 0; i < data1.Length - 1; i++)
+        {
+            int randIndex = Random.Range(i, data1.Length);
+
+            DataPoint temp1 = data1[randIndex];
+            DataPoint temp2 = data2[randIndex];
+
+            data1[randIndex] = data1[i];
+            data2[randIndex] = data2[i];
+
+            data1[i] = temp1;
+            data2[i] = temp2;
+        }
+    }
 }

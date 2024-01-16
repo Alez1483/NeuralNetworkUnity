@@ -160,7 +160,7 @@ public class Layer
 
         for(int i = 0; i < weights.Length; i++)
         {
-            weights[i] = MyRandom.RandomFromNormalDistribution(0.0, stddev);
+            weights[i] = MyMath.RandomFromNormalDistribution(0.0, stddev);
         }
     }
 

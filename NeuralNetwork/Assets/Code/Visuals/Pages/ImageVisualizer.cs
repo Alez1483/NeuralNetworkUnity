@@ -53,7 +53,8 @@ public class ImageVisualizer : MonoBehaviour
             percentTexts[i].text = output[i].ToString("P1", percentFormat);
         }
     }
-    public void NextWrong()
+
+    void NextWrong()
     {
         for (int i = 0; i < testImages.Length; i++)
         {

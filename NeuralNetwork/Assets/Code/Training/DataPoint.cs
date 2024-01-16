@@ -1,4 +1,6 @@
 using UnityEngine;
+using System;
+using System.Runtime.CompilerServices;
 
 public class DataPoint
 {
@@ -20,7 +22,31 @@ public class DataPoint
         expectedOutput[label] = 1.0;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public double GetPixel(int x, int y) => pixelData[x + imageWidth * y];
+
+    public double GetPixelInterpolated(double x, double y)
+    {
+        //bilinear interpolation
+        int xMax = imageWidth - 1;
+        int xLowBound = Math.Clamp((int)x, 0, xMax);
+        double xDist = x - xLowBound;
+
+        int yMax = imageHeight - 1;
+        int yLowBound = Math.Clamp((int)y, 0, yMax);
+        double yDist = y - yLowBound;
+
+        int xHighBound = Math.Min(xLowBound + 1, xMax);
+        int yHighBound = Math.Min(yLowBound + 1, yMax);
+
+        double x1 = MyMath.Lerp(GetPixel(xLowBound, yLowBound), GetPixel(xHighBound, yLowBound), xDist);
+
+        double x2 = MyMath.Lerp(GetPixel(xLowBound, yHighBound), GetPixel(xHighBound, yHighBound), xDist);
+
+        return MyMath.Lerp(x1, x2, yDist);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SetPixel(int x, int y, double value)
     { 
         pixelData[x + imageWidth * y] = value;

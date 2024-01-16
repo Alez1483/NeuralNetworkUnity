@@ -1,23 +1,41 @@
 using System;
 using static System.Math;
+using Random = System.Random;
+using UnityEngine;
 
-public static class MyRandom
+public static class MyMath
 {
     public static Random rnd = new Random();
 
-    public static double Range(double min, double max)
+    public static double RandomRange(double min, double max)
     {
         lock (rnd)
         {
             return min + rnd.NextDouble() * (max - min);
         }
     }
-    public static int Range(int min, int max)
+    public static int RandomRange(int min, int max)
     {
         lock (rnd)
         {
             return rnd.Next(min, max);
         }
+    }
+
+    public static (double x, double y) RandomInsideUnitCircle()
+    {
+        lock (rnd)
+        {
+            double angle = (rnd.NextDouble() * 2.0 * PI);
+            double dist = Sqrt(rnd.NextDouble());
+            return (Sin(angle) * dist, Cos(angle) * dist);
+        }
+    }
+
+    public static double Lerp(double min, double max, double t)
+    {
+        t = Clamp(t, 0.0, 1.0);
+        return min + t * (max - min);
     }
 
     public static double RandomFromNormalDistribution(double mean, double stddev)

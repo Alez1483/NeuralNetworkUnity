@@ -1528,9 +1528,16 @@ MonoBehaviour:
   dataSplit: 0.9
   networkSize: 1003000080000000320000000a000000
   learnRate: 0.01
-  momentum: 0.9
+  momentum: 0.95
   batchSize: 100
-  testSize: 250
+  randomizeImages: 1
+  randomizeAfterEveryXEpochs: 2
+  imageRandomizer:
+    rotationAmount: 20
+    translationAmount: 3
+    minScale: 0.6667
+    maxScale: 1.25
+  testSize: 2000
   graphDrawer:
     testAgainstTrainData: 1
     testPercentText: {fileID: 300522834}
@@ -1541,7 +1548,7 @@ MonoBehaviour:
     numberPrefab: {fileID: 8437035409595022904, guid: 6348c589d1a6b1343ba7b43cf8bfa640, type: 3}
     camera: {fileID: 519420031}
     camMomentumReductionRate: 3
-  graphUpdateRate: 2
+  graphUpdateRate: 4
 --- !u!4 &230672596
 Transform:
   m_ObjectHideFlags: 0
