@@ -1531,12 +1531,13 @@ MonoBehaviour:
   momentum: 0.95
   batchSize: 100
   randomizeImages: 1
-  randomizeAfterEveryXEpochs: 2
+  randomizeAfterEveryXEpochs: 1
   imageRandomizer:
     rotationAmount: 20
     translationAmount: 3
     minScale: 0.6667
     maxScale: 1.25
+    noiseAmount: 0.25
   testSize: 2000
   graphDrawer:
     testAgainstTrainData: 1

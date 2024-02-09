@@ -15,6 +15,7 @@ public class GraphDrawer
     NumberFormatInfo percentFormat = new NumberFormatInfo { PercentPositivePattern = 1 };
 
     //serialized into the unity editor of Trainer.cs
+    [Header("Note the train data means the non randomized one")]
     public bool testAgainstTrainData;
     public TextMeshPro testPercentText;
     public TextMeshPro trainPercentText;

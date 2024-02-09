@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using static UnityEditor.Rendering.CameraUI;
 
 [System.Serializable]
 public class ImageRandomizer
@@ -10,6 +7,7 @@ public class ImageRandomizer
     [SerializeField, Range(0f, 20f)] float translationAmount;
     [SerializeField, Range(0f, 2f)] float minScale;
     [SerializeField, Range(0f, 2f)] float maxScale;
+    [SerializeField, Range(0f, 1f)] float noiseAmount;
 
     public void RandomizeImage(DataPoint image)
     {
@@ -32,7 +30,9 @@ public class ImageRandomizer
             for (int x = 0; x < image.imageWidth; x++, i++)
             {
                 Vector3 transformedPos = matrix * new Vector3(x, y, 1);
-                randomizedData[i] = image.GetPixelInterpolated(transformedPos.x, transformedPos.y);
+                double value = image.GetPixelInterpolated(transformedPos.x, transformedPos.y);
+                value = MyMath.Lerp(value, MyMath.Random01(), noiseAmount);
+                randomizedData[i] = value;
             }
         }
     }

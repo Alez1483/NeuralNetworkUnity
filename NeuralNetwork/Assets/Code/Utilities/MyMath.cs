@@ -22,6 +22,13 @@ public static class MyMath
         }
     }
 
+    static readonly object lock1 = new object();
+
+    public static double Random01()
+    {
+            return rnd.NextDouble();
+    }
+
     public static (double x, double y) RandomInsideUnitCircle()
     {
         lock (rnd)

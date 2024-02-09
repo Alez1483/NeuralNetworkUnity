@@ -61,7 +61,7 @@ public class Trainer : MonoBehaviour
         //load data
         LoadData();
 
-        graphDrawer.Initialize(testData, trainData, network);
+        graphDrawer.Initialize(testData, graphDrawer.testAgainstTrainData? originalTrainData : null, network);
 
         batchStart = 0;
     }
